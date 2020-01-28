@@ -35,8 +35,16 @@ resource "aws_security_group" "app_security_group" {
 
   ingress {
     # TLS (change to whatever ports you need)
-    from_port   = 2
-    to_port     = 22
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    # TLS (change to whatever ports you need)
+    from_port   = 3000
+    to_port     = 3000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -80,18 +88,18 @@ resource "aws_route_table_association" "app_route_assoc" {
 
 # Launch an instance
 resource "aws_instance" "app_instance" {
-  ami  = var.ami_python
+  ami  = var.ami_nodesample
   subnet_id = aws_subnet.app_subnet.id
   vpc_security_group_ids = [aws_security_group.app_security_group.id]
   instance_type  = "t2.micro"
   associate_public_ip_address = true
-  #user_data = data.template_file.app_init.rendered     # Telling the instance to be aware of data may be coming from the specificed template file
+  user_data = data.template_file.app_init.rendered     # Telling the instance to be aware of data may be coming from the specificed template file
   tags  = {
     Name = "${var.name} - instance of app"
     }
 }
 
 # Send template shell file
-#data "template_file" "app_init" {
-#  template = "${file("./scripts/init_script.sh.tpl")}"
-#}
+data "template_file" "app_init" {
+  template = "${file("./scripts/init_script.sh.tpl")}"
+}
